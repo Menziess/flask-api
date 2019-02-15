@@ -9,7 +9,7 @@ jobs:
   displayName: Build and Test
   condition: succeeded()
   pool:
-    vmImage: 'Hosted Ubuntu 1604'
+    vmImage: 'Ubuntu 16.04'
   variables:
     python.version: '3.6, 3.7'
 
@@ -47,7 +47,7 @@ jobs:
   dependsOn: Phase_1
   condition: succeeded()
   pool:
-    vmImage: 'Hosted Ubuntu 1604'
+    vmImage: 'Ubuntu 16.04'
   steps:
   - task: UsePythonVersion@0
     displayName: 'Use Python >= 3.7'
