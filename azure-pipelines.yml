@@ -1,0 +1,70 @@
+resources:
+- repo: self
+
+jobs:
+
+#Multi-configuration and multi-agent job options are not exported to YAML. Configure these options using documentation guidance: https://docs.microsoft.com/vsts/pipelines/process/phases
+
+- job: Phase_1
+  displayName: Build and Test
+  condition: succeeded()
+  pool:
+    vmImage: Hosted Ubuntu 1604
+  variables:
+    python.version: '3.6, 3.7'
+
+  steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python $(python.version)'
+    inputs:
+      versionSpec: '$(python.version)'
+
+  - script: |
+       pip install pipenv
+       pipenv install -d --system --deploy --ignore-pipfile
+    displayName: 'Install dependencies'
+
+  - script: |
+       pip install typed_ast
+       make lint
+    displayName: Lint
+    continueOnError: true
+
+  - script: |
+       pip install pathlib2
+       make test
+    displayName: Pytest
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/test-results.xml'
+    inputs:
+      testResultsFiles: '**/test-results.xml'
+      testRunTitle: 'Python $(python.version)'
+
+
+- job: Phase_2
+  displayName: Publish
+  dependsOn: Phase_1
+  condition: succeeded()
+  pool:
+    vmImage: Hosted Ubuntu 1604
+  steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python >= 3.7'
+    inputs:
+      versionSpec: '>= 3.7'
+
+  - task: Docker@1
+    displayName: Build
+    inputs:
+      containerregistrytype: 'Container Registry'
+      dockerRegistryEndpoint: 'Dockerhub connection'
+      imageName: 'menziess/flask-api:latest'
+
+  - task: Docker@1
+    displayName: Push
+    inputs:
+      containerregistrytype: 'Container Registry'
+      dockerRegistryEndpoint: 'Dockerhub connection'
+      command: 'Push an image'
+      imageName: 'menziess/flask-api:latest'
