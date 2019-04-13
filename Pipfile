@@ -15,6 +15,7 @@ mypy = "*"
 python-dotenv = "*"
 toolz = "*"
 flask = "*"
+jinja2 = ">=2.10.1"
 
 [requires]
 python_version = "3.7"
